@@ -68,19 +68,25 @@ jobs:
       - name: Extract version from pubspec.yaml
         id: extract_version
         run: |
-          version=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r')
-          timestamp=$(date +%Y%m%d%H%M%S)
-          echo "VERSION=${version}-${timestamp}" >> $GITHUB_ENV
+          version=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | cut -d '+' -f 1)
+          echo "VERSION=${version}" >> $GITHUB_ENV
 
-        #12 Modify Tag if it Exists
-      - name: Modify Tag
-        if: env.TAG_EXISTS == 'true'
-        id: modify_tag
+      - name: Get Previous tag
+        id: previoustag
+        uses: "WyriHaximus/github-action-get-previous-tag@v1"
+        continue-on-error: true
+        with:
+          fallback: v1.0.0
+
+      - name: Calculate next version
+        id: calculate_version
         run: |
-          new_version="${{ env.VERSION }}-build-${{ github.run_number }}"
-          echo "VERSION=$new_version" >> $GITHUB_ENV
+          PREV_VERSION=${{ steps.previoustag.outputs.tag }}
+          PREV_VERSION=${PREV_VERSION#v}
+          IFS='.' read -r major minor patch <<< "$PREV_VERSION"
+          NEW_VERSION="$major.$minor.$((patch+1))"
+          echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
 
-        #13 Create Release
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
@@ -89,5 +95,3 @@ jobs:
           artifacts: "build/app/outputs/flutter-apk/app-release.apk"
           token: ${{ secrets.GITHUB_TOKEN }}
           generateReleaseNotes: true
-          allowUpdates: true
-          replacesArtifacts: true
