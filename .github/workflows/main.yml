@@ -18,8 +18,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set Up Java
         uses: actions/setup-java@v3.12.0
@@ -68,9 +70,11 @@ jobs:
         id: calculate_version
         run: |
           PREV_VERSION=${{ steps.previoustag.outputs.tag }}
+          echo "Previous version: $PREV_VERSION"
           PREV_VERSION=${PREV_VERSION#v}
           IFS='.' read -r major minor patch <<< "$PREV_VERSION"
           NEW_VERSION="$major.$minor.$((patch+1))"
+          echo "New version: v$NEW_VERSION"
           echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
 
       - name: Create Release
