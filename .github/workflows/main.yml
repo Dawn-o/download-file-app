@@ -100,6 +100,12 @@ jobs:
         run: |
           new_version="${{ env.VERSION }}-build-${{ github.run_number }}"
           echo "VERSION=$new_version" >> $GITHUB_ENV
+
+      - name: Delete existing tag
+        run: |
+         git tag -d ${{ github.ref_name }} || true
+         git push origin :refs/tags/${{ github.ref_name }}
+
         
         #13 Create Release
       - name: Create Release
