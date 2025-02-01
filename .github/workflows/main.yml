@@ -66,17 +66,8 @@ jobs:
         id: extract_version
         run: |
           version=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r')
-          echo "VERSION=$version" >> $GITHUB_ENV
-
-        #11 Check if Tag Exists
-      - name: Check if Tag Exists
-        id: check_tag
-        run: |
-          if git rev-parse "v${{ env.VERSION }}" >/dev/null 2>&1; then
-            echo "TAG_EXISTS=true" >> $GITHUB_ENV
-          else
-            echo "TAG_EXISTS=false" >> $GITHUB_ENV
-          fi
+          timestamp=$(date +%Y%m%d%H%M%S)
+          echo "VERSION=${version}-${timestamp}" >> $GITHUB_ENV
 
         #12 Modify Tag if it Exists
       - name: Modify Tag
@@ -90,6 +81,10 @@ jobs:
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
+          name: "Release v${{ env.VERSION }}"
+          tag: "v${{ env.VERSION }}"
           artifacts: "build/app/outputs/flutter-apk/app-release.apk"
-          tag: v${{ env.VERSION }}
-          token: ${{ secrets.TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          generateReleaseNotes: true
+          allowUpdates: true
+          replacesArtifacts: true
