@@ -57,12 +57,6 @@ jobs:
           path: |
             build/app/outputs/flutter-apk/app-release.apk
 
-      - name: Extract version from pubspec.yaml
-        id: extract_version
-        run: |
-          version=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | cut -d '+' -f 1)
-          echo "VERSION=${version}" >> $GITHUB_ENV
-
       - name: Get Previous tag
         id: previoustag
         uses: "WyriHaximus/github-action-get-previous-tag@v1"
@@ -87,3 +81,5 @@ jobs:
           artifacts: "build/app/outputs/flutter-apk/app-release.apk"
           token: ${{ secrets.GITHUB_TOKEN }}
           generateReleaseNotes: true
+          allowUpdates: true
+          replacesArtifacts: true
